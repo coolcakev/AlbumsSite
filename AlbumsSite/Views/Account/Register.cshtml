@@ -1,0 +1,184 @@
+﻿
+@model AlbumsSite.Models.Account.RegisterAccountModel
+@{
+    Layout = "AccountLayout";
+}
+
+<main>
+    <div class="register-page py-5">
+        <div class="container">
+            <div class="text-center">
+                <a href="#">
+                    <img class="d-block mx-auto mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="48" height="48">
+                </a>
+                <h1 class="h2">Присоединяйтесь</h1>
+                <div class="d-flex justify-content-center">
+                    <p class="mb-4">
+                        Уже зарегистрированы? <a href="/Account/Login" class=""><u>Войти</u></a>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 offset-md-3">
+                    <div id="RegisterAccountModel" class="wd-100p">
+
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" class="form-control" id="Email">
+                            <div class="invalid-feedback" style="display:block">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerLogin">Логин</label>
+                            <input type="text" class="form-control" id="UserLogin" placeholder="">
+                            <div class="invalid-feedback" style="display:block">
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="registerPassword">Пароль</label>
+                            <input type="password" class="form-control" id="Password">
+                            <div class="invalid-feedback" style="display:block">
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="registerPassword">Подтвердите Пароль</label>
+                            <input type="password" class="form-control" id="ConfirmPassword">
+                            <div class="invalid-feedback" style="display:block">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block mb-4"
+                            id="registerSubmit" onclick="validationFunction()">
+                        <div class="invalid-feedback" style="display:block">
+                        </div>
+                        Зарегистрироваться
+                    </button>
+                    <div class="d-sm-flex justify-content-center">
+                        <p>
+                            Регистрируясь Вы соглашаетесь с <a href="privacy-policy.html" class="">
+                                <u>
+                                    Политикой
+                                    использования
+                                </u>
+                            </a>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Optional JavaScript; choose one of the two! -->
+<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+
+
+<script>
+
+    function validationFunction() {
+
+        let dialogModel = "RegisterAccountModel";
+        let idInputs = getIdInput(dialogModel)
+        let login = document.getElementById("UserLogin");
+        let email = document.getElementById("Email");
+        let password = document.getElementById("Password");
+        let confirmPassword = document.getElementById("ConfirmPassword");
+        let loginFormat = new RegExp('^[^0-9][a-zA-Z0-9_]{3,}$');
+        let mailFormat = new RegExp('[a-z0-9]+@@[a-z]+\.[a-z]{2,3}');
+        let isValidLoginFormat = loginFormat.test(login.value);
+        let isValidEmailFormat = mailFormat.test(email.value);
+
+
+        setValidationInElement(login, "is-valid", "");
+        setValidationInElement(email, "is-valid", "");
+        setValidationInElement(password, "is-valid", "");
+        setValidationInElement(confirmPassword, "is-valid", "");
+
+        if (!isValidLoginFormat || login.value == "")
+            setValidationInElement(login, "is-invalid", "Введите только цифры и буквы и/или начинайте логин только с буквы");
+
+
+        if (!isValidEmailFormat || email.value == "")
+            setValidationInElement(email, "is-invalid", "Неправильный формат электронной почты");
+
+
+        if (password.value.length < 8 || password.value == "")
+            setValidationInElement(password, "is-invalid", "Пароль должен бить больше 8 символов");
+
+        if (password.value != confirmPassword.value || confirmPassword.value == "")
+            setValidationInElement(confirmPassword, "is-invalid", "Пароли не совпадают");
+
+        var functionSome = Array.prototype.some;
+        var isCorrect = functionSome.call(document.querySelectorAll(".form-group input"), function (item) {
+            return item.classList.contains("is-invalid");
+        });
+
+        if (isCorrect)
+            return;
+
+        let UserData = {
+            Email: email.value,
+            UserLogin: login.value,
+            Password: password.value,
+            ConfirmPassword: confirmPassword.value
+        };
+
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Account/Register",
+            data: JSON.stringify(UserData),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                if (data.redirectToUrl == undefined) {
+                    setVailidation(data, idInputs);
+                    return;
+                }
+                window.location.href = data.redirectToUrl;
+            },
+            async: false,
+        });
+        return false;
+    };
+        function setVailidation(data, idInputs) {
+            idInputs.forEach(item => {
+                let temp = data.ValidationMessage[item];
+                let element = document.getElementById(item);
+
+                if (temp != undefined) {
+
+                    setValidationInElement( element, "is-invalid", data.ValidationMessage[item]);
+                }
+                else {
+                    setValidationInElement(element, "is-valid", "");
+                }
+            });
+        }
+
+    function setValidationInElement(element, cssClass, text) {
+        element.classList.remove("is-valid");
+        element.classList.remove("is-invalid");
+        element.classList.add(cssClass);
+        element.closest(".form-group").querySelector(".invalid-feedback").innerHTML = text;
+    }
+    function getIdInput(id) {
+        var functionMap = Array.prototype.map;
+        let elements = document.querySelectorAll("#" + id + " .form-group input");
+        var selectValues = functionMap.call(elements, function (item) {
+
+            return item.id;
+
+        });
+        return selectValues;
+    }
+
+</script>
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+-->

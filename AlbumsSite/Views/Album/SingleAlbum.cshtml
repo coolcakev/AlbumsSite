@@ -1,0 +1,716 @@
+﻿@model AlbumsSite.Models.AlbumModel.SingleAlbumModel
+
+@using AlbumsSite.Models
+@using System.Security.Claims;
+@{
+    var checkForAuthenthification = User.Identity.IsAuthenticated;
+    var userRole = User.FindFirstValue(ClaimsIdentity.DefaultRoleClaimType);
+    var userRoleEnum = (RoleName)Enum.Parse(typeof(RoleName), userRole ?? "None");
+    var useidIdentity = User.FindFirst(x => x.Type == "UserId")?.Value ?? "-1";
+    var UserId = int.Parse(useidIdentity);
+}
+<main>
+    <input value="@Model.AlbumId" id="AlbumModelId" hidden />
+    <div class="container single-album pt-5 mb-3">
+        <h1 class="pt-0 pt-lg-4 pb-4 font-weight-bold" id="albumTitle">@Model.Album.Name</h1>
+        <div class="row">
+            <div class="col-sm">
+                <p id="albumDescription">
+                    @Model.Album.Description
+                </p>
+
+                <div class="d-flex flex-column flex-lg-row flex-wrap my-3">
+                    @if (checkForAuthenthification && (Model.AutorAlbumId == Model.CurrentUserId || userRoleEnum == RoleName.Administrator))
+                    {
+                        <button type="button" class="btn btn-primary mb-2 mr-lg-2" id="albumDescriptionEdit"
+                                data-toggle="modal" data-target="#albumDescriptionModal">
+                            Редактировать описание
+                        </button>
+                    }
+
+
+                    <div class="modal fade" id="albumDescriptionModal" tabindex="-1"
+                         aria-labelledby="albumDescriptionModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="albumDescriptionModalLabel">Описание</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="albumDescriptionTitle">Заголовок</label>
+                                        <input type="text" value="@Model.Album.Name" oninput="clearValidation(this)" class="form-control"
+                                               id="albumDescriptionTitle">
+                                        <div class="invalid-feedback" style="display:block"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="albumDescriptionText">Описание</label>
+                                        <textarea class="form-control" id="albumDescriptionText"
+                                                  rows="3">@Model.Album.Description</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary"
+                                            id="albumDescriptionUpdate" onclick="editAlbumModal()">
+                                        Сохранить и закрыть
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (checkForAuthenthification && (Model.AutorAlbumId == Model.CurrentUserId || userRoleEnum == RoleName.Administrator))
+                    {
+                        <button type="button" class="btn btn-danger mb-2 mr-lg-2" id="albumDelete" data-toggle="modal"
+                                data-target="#albumDeleteModal">
+                            Удалить альбом
+                        </button>
+                    }
+
+                    <div class="modal fade" id="albumDeleteModal" tabindex="-1"
+                         aria-labelledby="albumDeleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="albumDeleteModalLabel">
+                                        Вы действительно хотите
+                                        удалить
+                                        альбом? <small class="d-block text-danger">
+                                            После удаления его уже нельзя
+                                            восстановить
+                                        </small>
+                                    </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <button type="button" class="btn btn-danger mr-2" data-dismiss="modal"
+                                            id="albumDeleteConfirm" onclick="deleteAlbum()">
+                                        Да
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                                            id="albumDeleteCancel">
+                                        Нет
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="getLinkOnAlbum()" class="btn btn-primary mr-lg-2">
+                        Получить
+                        ссылку альбома
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="col-sm">
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Автор</span><span id="albumCreator"> <a href="/user-@Model.Album.Author.UserLogin?id=@Model.Album.Author.Id">@Model.Album.Author.UserLogin</a></span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Количество фото</span><span id="albumPhotoCount">@Model.Album.Pictures.Count</span>
+                </p>
+                <p class="d-flex flex-column align-items-start">
+                    <span class="badge badge-pill badge-dark mr-3 mb-3">Миниатюра</span><span id="albumThumbnail">
+                        <img class="img-fluid" src="@Model.Album.SmallThumbailImagePath" alt="new-york">
+                    </span>
+                </p>
+
+                @if (checkForAuthenthification && (Model.AutorAlbumId == Model.CurrentUserId || userRoleEnum == RoleName.Administrator))
+                {
+                    <div class="input-field mb-3 is-valid">
+                        <div id="ChangeThumbail" class="update-thumbnail-for-album"></div>
+                    </div>
+                    <button class="btn btn-primary mb-3" onclick="changeThumbail()">
+                        Обновить
+                        миниатюру
+                    </button>
+                }
+            </div>
+        </div>
+        @if (checkForAuthenthification && (Model.AutorAlbumId == Model.CurrentUserId || userRoleEnum == RoleName.Administrator))
+        {
+            <div class="input-field mb-3 ">
+                <div class="add-photos-to-album"></div>
+            </div>
+            <button class="btn btn-primary" onclick="createImage()">Добавить фото</button>
+        }
+    </div>
+    <div class="pb-5 mt-3">
+
+        <div class="gallery-container" id="single-album-thumbnails-gallery">
+
+
+            @foreach (var item in Model.Album.Pictures)
+            {
+                <a data-lg-size="@item.Width-@item.Height" class="gallery-item"
+                   data-src="@item.SmalpathMedium"
+                   data-sub-html="
+                <div class='d-flex flex-column flex-lg-row'>
+                <div class='col-sm d-flex flex-wrap align-items-center'>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Имя</span><span class='photo-name mr-4'>@item.Name </span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Дата и время</span><span class='photo-date-time mr-4'>@item.Date</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Место</span><span class='photo-place mr-4'>@item.City</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Модель камеры</span><span class='photo-camera mr-4'>@item.CameraModel</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Фокусное расстояние объектива</span><span
+                class='photo-lens-focal-length mr-4'>@item.FocalLength</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Диафрагма</span><span class='photo-diaphragm mr-4'>@item.Aperture</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Скорость затвора</span><span
+                class='photo-shutter-speed mr-4'>@item.ShutterSpeed</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>ISO</span><span class='photo-iso mr-4'>@item.ISO</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Вспышка</span><span class='photo-flash mr-4'>@item.Flash</span>
+                </div>
+                </div>
+                <div class='col-sm'>
+                <div class='d-flex flex-column flex-sm-row align-items-center'>
+                <a href='@item.SmallPath' class='btn btn-sm text-white' target='_blank'>Открыть фото в новой вкладке</a>
+                <a href='/Image/SinglePhoto?id=@item.Id' class='btn btn-sm text-white'>Перейти на страницу фото</a>
+                </div>
+                <div class='d-flex align-items-center'>
+
+                    @if (checkForAuthenthification && Model.AutorAlbumId != Model.CurrentUserId)
+                    {
+                        var like = item.Likes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == item.Id);
+
+                        if (like != null)
+                        {
+                            <button type='button' onclick='clickLike(this)' photoid='@item.Id' typeButton='liked' class='btn btn-sm photo-like text-white liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+
+                        }
+                        else
+                        {
+                            <button type='button' onclick='clickLike(this)' photoid='@item.Id' typeButton='liked' class='btn btn-sm photo-like text-white '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+                        }
+
+                        var dislike = item.Dislikes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == item.Id);
+                        if (dislike != null)
+                        {
+                            <button type='button' onclick='clickDislike(this)' photoid='@item.Id' typeButton='disliked' class='btn btn-sm photo-Dislike text-white disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+
+                        }
+                        else
+                        {
+                            <button type='button' onclick='clickDislike(this)' photoid='@item.Id' typeButton='disliked' class='btn btn-sm photo-Dislike text-white'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+                        }
+
+
+
+                        <button type='button' class='btn btn-sm text-white' id='photoAddToAlbum' data-toggle='modal'
+                                data-target='#photoAddToAlbumModal' onclick='addModalOpen(`@item.Id`)' title='Добавить себе в альбом'>
+                            <i class='bi bi-plus-lg'></i>
+                        </button>
+
+
+
+
+
+                    }
+                    else
+                    {
+                        <button type='button' class='btn btn-sm photo-like text-white liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+                        <button type='button' class='btn btn-sm photo-Dislike text-white disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+                        if (Model.CurrentUserId == Model.AutorAlbumId)
+                        {
+                            <button type='button' class='btn btn-sm text-white' id='photoDelete' data-toggle='modal'
+                                    data-target='#photoDeleteModal' title='Удалить' onclick='deletePhotoModalOpen(`@item.Id`)'>
+                                <i class='bi bi-trash'></i>
+                            </button>
+                            <button type='button' class='btn btn-sm text-white' id='photoAddToAlbum' data-toggle='modal'
+                                    data-target='#photoAddToAlbumModal' onclick='addModalOpen(`@item.Id`)' title='Добавить себе в альбом'>
+                                <i class='bi bi-plus-lg'></i>
+                            </button>
+                        }
+
+                    }
+
+
+
+                </div>
+                </div>
+                </div>" >
+
+
+                <img alt="" class="img-responsive"
+                src="@item.SmalpathThubail" />
+                </a>
+
+            }
+        </div>
+
+    </div>
+</main>
+
+<div class="modal fade" id="photoDeleteModal" tabindex="-1" aria-labelledby="photoDeleteModalLabel"
+     aria-hidden="true">
+    <input id="ImageModelId" hidden />
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoDeleteModalLabel">
+                    Вы действительно хотите
+                    удалить
+                    фото?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <button type="submit" class="btn btn-danger mr-2" data-dismiss="modal"
+                        id="photoDeleteConfirm" onclick="deleteImageFromAlbum()">
+                    Да
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="photoDeleteCancel">Нет</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="photoAddToAlbumModal" tabindex="-1" aria-labelledby="photoAddToAlbumModalLabel"
+     aria-hidden="true">
+    <input id="ImageModelIdForAdd" hidden />
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoAddToAlbumModalLabel">
+                    Выберите альбом в который
+                    вы хотите добавить
+                    фото?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="photoAddToAlbumSelect">Альбомы</label>
+                    <select multiple class="form-control" id="photoAddToAlbumSelect" size="10">
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" data-dismiss="modal"
+                        id="photoAddToAlbumConfirm" onclick="addImageToAlbumFromGalery()">
+                    Сохранить и закрыть
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Optional JavaScript; choose one of the two! -->
+<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+
+
+<script>
+
+    jQuery("#single-album-thumbnails-gallery")
+        .justifiedGallery({
+            captions: true,
+            rowHeight: 180,
+            margins: 5
+        })
+        .on("jg.complete", function () {
+            window.lightGallery(
+                document.getElementById("single-album-thumbnails-gallery"),
+                {
+                    autoplayFirstVideo: false,
+                    pager: false,
+                    galleryId: "new-york",
+                    plugins: [lgZoom, lgThumbnail],
+                    mobileSettings: {
+                        controls: false,
+                        showCloseIcon: false,
+                        download: false,
+                        rotate: false
+                    }
+                }
+            );
+        });
+    window.onload = function () {
+
+        let albumCurrentName = document.getElementById("albumTitle").innerText;
+
+        let activeAlbum = document.querySelector(`a[albumname="${albumCurrentName}"]`);
+        activeAlbum.classList.add("active");
+    }
+    //window.onscroll = myScroll;
+    //var clietnPosition = 1500; // Global Variable
+    //function myScroll() {
+        
+    //        if (window.pageYOffset > clietnPosition) {
+    //            alert('!');
+    //            clietnPosition+=1500; 
+    //        }
+    //}
+
+
+    $(document).ready(function () {
+        $('.add-photos-to-album').imageUploader({
+            maxSize: 2 * 1024 * 1024,
+            mimes: ['image/jpeg']
+        });
+        $('.update-thumbnail-for-album').imageUploader({
+            maxFiles: 1,
+            maxSize: 2 * 1024 * 1024,
+            mimes: ['image/jpeg']
+        });
+    });
+
+    let albomId = document.getElementById("AlbumModelId");
+    var countClickOnAdd = 0;
+    function createImage() {
+        let imageFile = document.querySelectorAll(".image-uploader > input")[1].files;
+
+        if (countClickOnAdd != 0)
+            return;
+        if (imageFile.length==0)
+        {
+            alert("Count files: 0!");
+            return;
+        }
+        let model = new FormData();
+
+        model.append('AlbumId', Number(albomId.value));
+        let temp = Array.prototype.forEach
+        temp.call(imageFile, function (Element) {
+            model.append('Files', Element);
+        })
+        countClickOnAdd++;
+        $.ajax({
+            type: "POST",
+            url: "/Image/CreateImage",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                window.location.href = data.redirectToUrl;
+            },
+            error: function (data) {
+
+                alert(data.responseText);
+            },
+            
+        });
+    }
+
+    function changeThumbail() {
+
+        let imageFile = document.querySelectorAll(".image-uploader > input")[0].files[0];
+        if (!imageFile) {
+            alert("Count files: 0!");
+            return;
+        }
+        let model = new FormData();
+
+        model.append('AlbumId', Number(albomId.value));
+        model.append('File', imageFile );
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Albums/ChangeThumbail",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                let thumbailImage = document.querySelector("#albumThumbnail img");
+                thumbailImage.src = window.location.origin + data;
+
+                document.getElementById("ChangeThumbail").innerHTML="";
+                $('.update-thumbnail-for-album').imageUploader({
+                    maxFiles: 1,
+                    maxSize: 2 * 1024 * 1024,
+                    mimes: ['image/jpeg']
+                });
+                
+            },           
+        });
+    }
+
+    function deleteImageFromAlbum() {
+
+        let model = new FormData();
+
+        let imageId = document.getElementById("ImageModelId");
+        model.append('AlbumId', Number(albomId.value));
+        model.append('ImageId', Number(imageId.value));
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Image/DeletePhotoFromAlbum",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function () {
+
+                document.location.reload();
+            },
+          
+        });
+    }
+
+    function deletePhotoModalOpen(imageId) {
+
+        document.getElementById("ImageModelId").value = imageId;
+    }
+
+    function addModalOpen(imageId) {
+        let model = new FormData();
+        document.getElementById("ImageModelIdForAdd").value = imageId;
+        model.append('id', Number(imageId));
+        $.ajax({
+            type: "POST",
+            url: "/Image/AddImageModalOpen",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                var select = document.getElementById("photoAddToAlbumSelect");
+                select.innerHTML = "";
+                data.forEach(function (item) {
+                    var opt = document.createElement('option');
+                    opt.value = item.Id;
+                    opt.innerHTML = item.Name;
+                    select.appendChild(opt);
+                });
+
+            },
+         
+        });
+    }
+
+    function addImageToAlbumFromGalery() {
+
+        let albumId = document.getElementById("photoAddToAlbumSelect");
+        if (albumId.value == '')
+            return;
+
+
+        let model = new FormData();
+
+        let imageId = document.getElementById("ImageModelIdForAdd");
+        model.append('AlbumId', Number(albumId.value));
+        model.append('PhotoId', Number(imageId.value));
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Image/AddImageToAlbumFromGalery",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function () {
+                albumId.querySelector("[value='" + albumId.value + "']").remove();
+
+            },
+            error: function (data) {
+
+                alert(data.responseText);
+            },
+           
+        });
+    }
+
+    function deleteAlbum() {
+        let model = new FormData();
+
+        model.append('AlbumId', Number(albomId.value));
+
+        $.ajax({
+            type: "POST",
+            url: "/Albums/DeleteAlbum",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                window.location.href = data.redirectToUrl;
+            },
+           
+        });
+
+    }
+    function getLinkOnAlbum() {
+        navigator.clipboard.writeText(window.location.href)
+            .then(() => {
+                console.log('Text copied to clipboard');
+            })
+            .catch(err => {
+                // Це може статися, якщо користувач відхилить дозволи буфера обміну:
+                console.error('Could not copy text: ', err);
+            });
+
+
+    }
+    NodeList.prototype.addEventListener = function (event_name, callback, useCapture) {
+        for (var i = 0; i < this.length; i++) {
+            this[i].addEventListener(event_name, callback, useCapture);
+        }
+    };
+
+    NodeList.prototype.filter = Array.prototype.filter;
+    let modelLikeDislike =
+    {
+        liked: {},
+        disliked: {},
+    }
+    function likeOrDislike(item) {
+        let butons = document.querySelectorAll(".photo-like, .photo-Dislike");
+        let oppositeButton = butons.filter(x => x.classList != item.classList)[0];
+
+        let typeThisButton = item.getAttribute('typeButton');
+        let typeOppositeButton = oppositeButton.getAttribute('typeButton');
+        let thisButtonCountSpan = item.nextSibling;
+        let oppositeButtonCountSpan = oppositeButton.nextSibling;
+        let photoId = item.getAttribute('photoid');
+        if (!modelLikeDislike[typeThisButton][photoId])
+            modelLikeDislike[typeThisButton][photoId] = 0;
+
+        if (item.classList.contains(typeThisButton)) {
+            item.classList.remove(typeThisButton);
+            thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeThisButton][photoId] += -1;
+            return
+        }
+        thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) + 1;
+        modelLikeDislike[typeThisButton][photoId] += 1;
+        item.classList.add(typeThisButton);
+        if (oppositeButton.classList.contains(typeOppositeButton)) {
+            oppositeButton.classList.remove(typeOppositeButton);
+            oppositeButtonCountSpan.innerText = Number(oppositeButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeOppositeButton][photoId] += -1;
+        }
+    };
+    function clickLike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Like/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+
+    function clickDislike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Dislike/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+    const lg = document.getElementById('single-album-thumbnails-gallery');
+
+    lg.addEventListener('lgAfterAppendSubHtml', (event) => {
+        let buttons = document.querySelectorAll(".photo-like, .photo-Dislike");
+
+        let photoId = buttons[0].getAttribute('photoid');
+
+        if (modelLikeDislike["liked"][photoId]) {
+            switch (modelLikeDislike["liked"][photoId]) {
+                case 1:
+                    buttons[0].classList.add("liked");
+                    buttons[0].nextSibling.innerText = Number(buttons[0].nextSibling.innerText) + 1;
+                    break;
+                case -1:
+                    buttons[0].classList.remove("liked");
+                    buttons[0].nextSibling.innerText = Number(buttons[0].nextSibling.innerText) - 1;
+                    break;
+
+                default:
+                    break;
+            }
+
+
+        }
+        if (modelLikeDislike["disliked"][photoId]) {
+            switch (modelLikeDislike["disliked"][photoId]) {
+                case 1:
+                    buttons[1].classList.add("disliked");
+                    buttons[1].nextSibling.innerText = Number(buttons[1].nextSibling.innerText) + 1;
+                    break;
+                case -1:
+                    buttons[1].classList.remove("disliked");
+                    buttons[1].nextSibling.innerText = Number(buttons[1].nextSibling.innerText) - 1;
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+    });
+    function editAlbumModal() {
+
+        let name = document.getElementById("albumDescriptionTitle");
+        let description = document.getElementById("albumDescriptionText").value;
+        let albumDescription = document.getElementById("albumDescription");
+        let albumTitle = document.getElementById("albumTitle");
+
+
+
+        let model = new FormData();
+
+        model.append('AlbumId', Number(albomId.value));
+        model.append('Name', name.value);
+        model.append('Description', description);
+
+        $.ajax({
+            type: "POST",
+            url: "/Albums/EditAlbum",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                let activeAlbum = document.querySelector(`a.active`);
+                activeAlbum.innerText = name.value;      
+
+                albumDescription.innerText = description;
+                albumTitle.innerText = name.value;
+                document.querySelector('[aria-label="Close"]').click();
+            },
+            error: function () {
+
+                setValidationInElement(name, "is-invalid", "Это имя уже используется");
+            },
+            async: false,
+        });
+
+    }
+</script>
+
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/jquery@@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+-->

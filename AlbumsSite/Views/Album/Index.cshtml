@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+@model AlbumsSite.Models.AlbumModel.AllAlbumsModel;
+<main>
+    <div class="user-page py-5">
+        <div class="container">
+            <div class="card-columns mt-3">
+                @{
+                    foreach (var item in Model.AllAlbums)
+                    {
+                        <div class="card bg-light border-0 album canBeSelected">
+                            <input value="@item.Id" hidden />
+                            <img src="@item.SmallThumbailImagePath"
+                                 class="card-img-top" alt="@item.Name">
+                            <div class="card-body">
+                                <a href="/Albums/@item.Name" class="btn btn-secondary stretched-link">@item.Name</a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</main>
+
+    
+    
+<style>
+    .selected_Objeckt {
+        opacity: 0.5;
+        box-shadow: 0px 0px 0px 5px rgba(0, 0, 0, 0.1);
+    }
+</style>
+<script src="~/js/app.js"></script>
+<script type="text/javascript" src="~/js/image-uploader.min.js"></script>
+<script>
+    $('.add-thumbnail-for-album').imageUploader({
+        maxFiles: 1,
+        maxSize: 2 * 1024 * 1024,
+        mimes: ['image/jpeg']
+    });
+
+    HTMLCollection.prototype.addEventListener = function (event_name, callback, useCapture) {
+        for (var i = 0; i < this.length; i++) {
+            this[i].addEventListener(event_name, callback, useCapture);
+        }
+    };
+
+    document.getElementsByClassName("canBeSelected").addEventListener('click', function (event) {
+        if (event.ctrlKey) {
+            event.preventDefault();
+            this.classList.toggle("selected_Objeckt")
+        }
+    });
+
+</script>
+

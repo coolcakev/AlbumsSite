@@ -1,0 +1,445 @@
+﻿@model SinglePhotoModel;
+@using AlbumsSite.Models.Image;
+@using System.Security.Claims;
+@{ 
+    var useidIdentity = User.FindFirst(x => x.Type == "UserId")?.Value ?? "-1";
+    var UserId = int.Parse(useidIdentity);
+    var checkForAuthenthification = User.Identity.IsAuthenticated;
+    var userRole = User.FindFirstValue(ClaimsIdentity.DefaultRoleClaimType);
+}
+
+<main class="py-5">
+    <input value="@Model.Picture.Id" id="ImageModelId" hidden />
+    <div class="container" id="single-photo">
+        <h1 class="pt-0 pt-lg-4 pb-4 font-weight-bold">@Model.Picture.Name</h1>
+        <div class="row">
+            <div class="col-sm">
+                <div class="medium-zoom-demo">
+                    <figure lg-background-color="#f8f9fa" class="blog-images" data-src="@Model.Picture.SmallPath"
+                            data-lg-size="@Model.Picture.Width-@Model.Picture.Height">
+                        <img class="img-fluid" src="@Model.Picture.SmallPath" />
+                    </figure>
+                </div>
+            </div>
+            <div class="col-sm">
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Автор</span><span id="photoAutorName"> <a href="/user-@Model.Picture.Author.UserLogin?id=@Model.AuthorId">@Model.Picture.Author.UserLogin </a> </span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Имя</span><span id="photoName">@Model.Picture.Name</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Дата и время</span><span id="photoDateTime">
+                        @Model.Picture.Date
+                    </span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Место</span><span id="photoPlace">@Model.Picture.City</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Модель камеры</span><span id="photoCamera">
+                        @Model.Picture.CameraModel
+                    </span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Фокусное расстояние объектива</span><span id="photoLensFocalLength">@Model.Picture.FocalLength</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Диафрагма</span><span id="photoDiaphragm">@Model.Picture.Aperture</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Скорость затвора</span><span id="photoShutterSpeed">@Model.Picture.ShutterSpeed</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">ISO</span><span id="photoISO">@Model.Picture.ISO</span>
+                </p>
+                <p class="d-flex align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Вспышка</span><span id="photoFlash">@Model.Picture.Flash</span>
+                </p>
+                <p class="d-flex flex-wrap align-items-center">
+                    <span class="badge badge-pill badge-dark mr-3">Альбомы</span>
+                    @foreach (var item in Model.Picture.PictureAlbums)
+                    {
+                        <a href="/Albums/@item.Name" class="mr-3">@item.Name</a>
+                    }
+
+                </p>
+
+
+                @if (checkForAuthenthification)
+                {
+                    <div class="d-flex flex-column flex-lg-row flex-wrap my-3">
+                        @if (UserId == Model.Picture.Author.Id)
+                        {
+                            <button type="button" class="btn btn-primary mb-2 mr-lg-2" id="photoPropertiesEdit"
+                                    data-toggle="modal" data-target="#photoPropertiesModal">
+                                Редактировать свойства
+                            </button>
+                            <div class="modal fade" id="photoPropertiesModal" tabindex="-1"
+                                 aria-labelledby="photoPropertiesModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="photoPropertiesModalLabel">Свойства фото</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="photoPropertiesName">Имя</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesName" value="@Model.Picture.Name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesDateTime">Дата и время</label>
+                                                <input type="datetime-local" class="form-control"
+                                                       id="photoPropertiesDateTime" value="@Model.Picture.Date.ToString("s")">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesPlace">Место</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesPlace" value="@Model.Picture.City">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesCamera">Модель камеры</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesCamera" value="@Model.Picture.CameraModel">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesLensFocalLength">
+                                                    Фокусное расстояние
+                                                    объектива
+                                                </label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesLensFocalLength" value="@Model.Picture.FocalLength">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesDiaphragm">Диафрагма</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesDiaphragm" value="@Model.Picture.Aperture">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesShutterSpeed">Скорость затвора</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesShutterSpeed" value="@Model.Picture.ShutterSpeed">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesISO">ISO</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesISO" value="@Model.Picture.ISO">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="photoPropertiesFlash">Вспышка</label>
+                                                <input type="text" class="form-control"
+                                                       id="photoPropertiesFlash" value="@Model.Picture.Flash">
+                                            </div>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="changeImageData()"
+                                                    id="photoPropertiesUpdate">
+                                                Сохранить и закрыть
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-danger mb-2 mr-lg-2" id="photoDelete" data-toggle="modal"
+                                    data-target="#photoDeleteModal">
+                                Удалить фото
+                            </button>
+                            <div class="modal fade" id="photoDeleteModal" tabindex="-1"
+                                 aria-labelledby="photoDeleteModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="photoDeleteModalLabel">
+                                                Вы действительно хотите
+                                                полностью удалить
+                                                фото? <small class="d-block text-danger">
+                                                    После удаления его уже нельзя
+                                                    восстановить
+                                                </small>
+                                            </h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <button type="button" class="btn btn-danger mr-2" data-dismiss="modal"
+                                                    id="photoDeleteConfirm" onclick="deleteImage()">
+                                                Да
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                                                    id="photoDeleteCancel">
+                                                Нет
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <button type="button" class="btn btn-primary mb-2 mr-lg-2" id="photoAddToAlbum" data-toggle="modal"
+                                data-target="#photoAddToAlbumModal">
+                            Добавить в
+                            альбом
+                        </button>
+                        <div class="modal fade" id="photoAddToAlbumModal" tabindex="-1"
+                             aria-labelledby="photoAddToAlbumModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <form class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="photoAddToAlbumModalLabel">
+                                            Выберите альбом в который
+                                            вы хотите добавить
+                                            фото?
+                                        </h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="photoAddToAlbumSelect">Альбомы</label>
+                                            <select multiple class="form-control" id="photoAddToAlbumSelect" size="10">
+                                                @foreach (var item in Model.UsersAlbum)
+                                                {
+                                                    <option value="@item.Id">@item.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary" data-dismiss="modal"
+                                                id="photoAddToAlbumConfirm"
+                                                onclick="addPhotoInAlbum()">
+                                            Сохранить и закрыть
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            <div class="d-flex align-items-center">
+                @if (checkForAuthenthification && Model.AuthorId != UserId)
+                {
+                    var like = Model.Picture.Likes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == Model.Picture.Id);
+
+                    if (like != null)
+                    {
+                        <button type='button' onclick='clickLike(this)' photoid='@Model.Picture.Id' typeButton='liked' class='btn btn-sm photo-like  liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Likes.Count</span>
+
+                    }
+                    else
+                    {
+                        <button type='button' onclick='clickLike(this)' photoid='@Model.Picture.Id' typeButton='liked' class='btn btn-sm photo-like  '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Likes.Count</span>
+                    }
+
+                    var dislike = Model.Picture.Dislikes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == Model.Picture.Id);
+                    if (dislike != null)
+                    {
+                        <button type='button' onclick='clickDislike(this)' photoid='@Model.Picture.Id' typeButton='disliked' class='btn btn-sm photo-Dislike  disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Dislikes.Count</span>
+
+                    }
+                    else
+                    {
+                        <button type='button' onclick='clickDislike(this)' photoid='@Model.Picture.Id' typeButton='disliked' class='btn btn-sm photo-Dislike '><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Dislikes.Count</span>
+                    }
+
+                    if (UserId == Model.AuthorId)
+                    {
+                        <button type='button' class='btn btn-sm ' id='photoDelete' data-toggle='modal'
+                                data-target='#photoDeleteModal' title='Удалить' onclick='deletePhotoModalOpen(`@Model.Picture.Id`)'>
+                            <i class='bi bi-trash'></i>
+                        </button>
+
+                        <button type='button' class='btn btn-sm ' id='photoAddToAlbum' data-toggle='modal'
+                                data-target='#photoAddToAlbumModal' onclick='addModalOpen(`@Model.Picture.Id`)' title='Добавить себе в альбом'>
+                            <i class='bi bi-plus-lg'></i>
+                        </button>
+
+                    }
+
+
+                }
+                else
+                {
+                    <button type='button' class='btn btn-sm photo-like liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Likes.Count</span>
+                    <button type='button' class='btn btn-sm photo-Dislike  disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@Model.Picture.Dislikes.Count</span>
+
+                }
+            </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script src="~/js/app.js"></script>
+<script src="~/js/lightgallery.min.js"></script>
+<script src="~/js/lg-medium-zoom.min.js"></script>
+
+<script>
+    lightGallery(document.querySelector('.medium-zoom-demo'), {
+        // Target all images
+        selector: '.blog-images',
+        // Add medium zoom plugin
+        plugins: [lgMediumZoom],
+    });
+
+    let imageId = document.getElementById("ImageModelId");
+    function changeImageData() {
+
+        let name = document.getElementById("photoPropertiesName").value;
+        let date = document.getElementById("photoPropertiesDateTime").value;
+        let city = document.getElementById("photoPropertiesPlace").value;
+        let camera = document.getElementById("photoPropertiesCamera").value;
+        let focalLength = document.getElementById("photoPropertiesLensFocalLength").value;
+        let aperture = document.getElementById("photoPropertiesDiaphragm").value;
+        let shutterSpeed = document.getElementById("photoPropertiesShutterSpeed").value;
+        let iso = document.getElementById("photoPropertiesISO").value;
+        let flash = document.getElementById("photoPropertiesFlash").value;
+
+
+
+
+        let model = new FormData();
+
+        model.append('Id', Number(imageId.value));
+        model.append('Name', name);
+        model.append('Date', date);
+        model.append('City', city);
+        model.append('CameraModel', camera);
+        model.append('FocalLength', focalLength);
+        model.append('Aperture', aperture);
+        model.append('ShutterSpeed', shutterSpeed);
+        model.append('ISO', iso);
+        model.append('Flash', flash);
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Image/ChangeImageData",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                window.location.href = data.redirectToUrl;
+            },
+            async: false,
+        });
+    }
+
+    function deleteImage() {
+
+        let model = new FormData();
+
+        model.append('ImageId', Number(imageId.value));
+        $.ajax({
+            type: "POST",
+            url: "/Image/DeleteImage",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                window.location.href = data.redirectToUrl;
+            },
+            async: false,
+        });
+    }
+
+    function addPhotoInAlbum() {
+
+        let albumId = document.getElementById("photoAddToAlbumSelect").value;
+
+        let model = new FormData();
+        if (albumId == '')
+            return;
+
+        model.append('PhotoId', Number(imageId.value));
+        model.append('AlbumId', albumId);
+
+        $.ajax({
+            type: "POST",
+            url: "/Image/AddPhotoInAlbum",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+
+                window.location.href = data.redirectToUrl;
+            },
+            error: function (data) {
+
+                alert(data.responseText);
+            },
+            async: false,
+        });
+    }
+
+
+    NodeList.prototype.filter = Array.prototype.filter;
+    let modelLikeDislike =
+    {
+        liked: {},
+        disliked: {},
+    }
+    function likeOrDislike(item) {
+        let butons = document.querySelectorAll(".photo-like, .photo-Dislike");
+        let oppositeButton = butons.filter(x => x.classList != item.classList)[0];
+
+        let typeThisButton = item.getAttribute('typeButton');
+        let typeOppositeButton = oppositeButton.getAttribute('typeButton');
+        let thisButtonCountSpan = item.nextSibling;
+        let oppositeButtonCountSpan = oppositeButton.nextSibling;
+        let photoId = item.getAttribute('photoid');
+        if (!modelLikeDislike[typeThisButton][photoId])
+            modelLikeDislike[typeThisButton][photoId] = 0;
+
+        if (item.classList.contains(typeThisButton)) {
+            item.classList.remove(typeThisButton);
+            thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeThisButton][photoId] += -1;
+            return
+        }
+        thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) + 1;
+        modelLikeDislike[typeThisButton][photoId] += 1;
+        item.classList.add(typeThisButton);
+        if (oppositeButton.classList.contains(typeOppositeButton)) {
+            oppositeButton.classList.remove(typeOppositeButton);
+            oppositeButtonCountSpan.innerText = Number(oppositeButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeOppositeButton][photoId] += -1;
+        }
+    };
+    function clickLike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Like/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+
+    function clickDislike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Dislike/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+</script>
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+-->

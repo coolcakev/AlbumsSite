@@ -1,0 +1,457 @@
+﻿
+@model AlbumsSite.Models.Admin.AcountUserAdminModel
+
+
+<main>
+    <div class="admin-page py-5">
+        <h1 class="sr-only">Администратор</h1>
+        <div class="container">
+            <ul class="nav nav-tabs mb-3" id="admin-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="pills-users-tab" data-toggle="pill" href="#pills-users"
+                       role="tab" aria-controls="pills-users" aria-selected="true" onclick="showAllUser()">Пользователи</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-photos-tab" data-toggle="pill" href="#pills-photos" role="tab"
+                       aria-controls="pills-photos" aria-selected="false" onclick="showAllPhoto()">Фото</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-albums-tab" data-toggle="pill" href="#pills-albums" role="tab"
+                       aria-controls="pills-albums" aria-selected="false" onclick="showAllAlbum()">Альбомы</a>
+                </li>
+            </ul>
+
+
+            <ejs-grid id="Grid" allowSorting="true" allowSelection="true" rowSelecting="selectingEvent" actionComplete="removeScroll" allowPaging="true" dataSource="@Model.AllUsers" style=" margin-bottom: 30px; display:block" height="370px">
+                <e-grid-pagesettings pageSize="10"></e-grid-pagesettings>
+
+                <e-grid-columns>
+                    <e-grid-column headerTextAlign="Left" textAlign="Left" field="Email" headerText="Email" autoFit="true" template="#templateEmail">
+                        <e-content-template>
+                            <div id="templateEmail" style="text-overflow: clip;" hidden>
+                                <span> <a href="mailto:email1@mail.ru">${Email}</a></span>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                    <e-grid-column  headerTextAlign="Left" textAlign="Left" field="UserLogin" headerText="Логин" autoFit="true" template="#templateLogin">
+                        <e-content-template>
+                            <div id="templateLogin" class="align-middle" style="text-overflow: clip;" hidden>
+                                <span><a href="/user-${UserLogin}?id=${UserId}"> ${UserLogin}</a></span>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                    <e-grid-column id="needAlbum" headerTextAlign="Left" textAlign="Left" field="AlbumName" headerText="Альбомы" template="#template">
+                        <e-content-template>
+                            <div id="template" class="align-middle" style="text-overflow: clip;" hidden>
+                                ${for(album of AlbumName)}
+                                <span> <a href="/Albums/${album}">${album}</a> </span>
+                                ${/for}
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+
+                    <e-grid-column headerTextAlign="Left" autoFit="true" textAlign="Center" field="Role" headerText="Премиум" template="#checkboxTemplate">
+                        <e-content-template>
+                            <div id="checkboxTemplate" style="text-overflow: clip;" hidden>
+                                <div class="custom-control custom-switch">
+                                    ${if(IsVip)}
+                                    <input type="checkbox" class="custom-control-input" id="customSwitch${UserId}" checked />
+                                    ${else }
+                                    <input type="checkbox" class="custom-control-input " id="customSwitch${UserId}">
+                                    ${/if}
+                                    <label class="custom-control-label"></label>
+                                </div>
+
+                            </div>
+                        </e-content-template>
+
+                    </e-grid-column>
+                    <e-grid-column headerTextAlign="Center" textAlign="Center" autoFit="true" width="150" headerText="Удалить" template="#deleteTemplate">
+                        <e-content-template>
+                            <div id="deleteTemplate" class="align-middle" style="text-overflow: clip; " hidden>
+                                <button type="button" class="btn btn-danger" id="userDelete" data-toggle="modal" data-target="#userDeleteModal" onclick="forDeleteUser(`${UserId}`)"> Удалить </button>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                </e-grid-columns>
+            </ejs-grid>
+
+            <ejs-grid id="GridForPhoto" allowSorting="true" allowPaging="true" actionComplete="removeScroll" style=" margin-bottom: 30px; display:none">
+                <e-grid-pagesettings pageSize="10"></e-grid-pagesettings>
+
+                <e-grid-columns>
+
+                    <e-grid-column headerTextAlign="Left" autoFit="true" textAlign="Left" field="Path" headerText="Миниатюра" template="#templateThumbnail">
+                        <e-content-template>
+                            <div id="templateThumbnail" style="text-overflow: clip; " hidden>
+
+                                <a class="d-inline-block border"
+                                   href="/Image/SinglePhoto?id=${PhotoId}">
+                                    <img src="${Path}">
+                                </a>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                    <e-grid-column headerTextAlign="Left" textAlign="Left" field="AuthorName" headerText="Автор" template="#templatePhotoAuthor">
+                        <e-content-template>
+                            <div id="templatePhotoAuthor" style="text-overflow: clip;" hidden>
+                                <span><a href="/user-${AuthorName}?id=${UserId}">${AuthorName}</a></span>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+
+                    <e-grid-column headerTextAlign="Left" textAlign="Left" field="AlbumName" headerText="Альбомы" template="#templatePhoto">
+                        <e-content-template>
+                            <div id="templatePhoto" style="text-overflow: clip;" hidden>
+                                ${for(album of AlbumName)}
+                                <span> <a href="/Albums/${album}">${album}</a> </span>
+                                ${/for}
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                    <e-grid-column headerTextAlign="Left" headerText="Удалить" template="#deleteTemplatePhoto">
+                        <e-content-template>
+                            <div id="deleteTemplatePhoto" style="text-overflow: clip; " hidden>
+                                <button type="button" class="btn btn-danger" id="photoDelete" data-toggle="modal" data-target="#photoDeleteModal" onclick="forDeletePhoto({PhotoId:`${PhotoId}`})"> Удалить </button>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                </e-grid-columns>
+            </ejs-grid>
+
+            <ejs-grid id="GridForAlbum" allowSorting="true" allowPaging="true" actionComplete="removeScroll" style=" margin-bottom: 30px; display:none">
+                <e-grid-pagesettings pageSize="10"></e-grid-pagesettings>
+                <e-grid-columns>
+                    <e-grid-column headerTextAlign="Left" autoFit="true" textAlign="Left" field="Path" headerText="Миниатюра" template="#templateThumbnailAlbum">
+                        <e-content-template>
+                            <div id="templateThumbnailAlbum" style="text-overflow: clip; " hidden>
+
+                                <a class="d-inline-block border"
+                                   href="/Albums/${AlbumName}">
+                                    <img src="${Path}">
+                                </a>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                    <e-grid-column headerTextAlign="Left" textAlign="Left" field="AlbumName" headerText="Альбом" template="#templateAlbums">
+                        <e-content-template>
+                            <div id="templateAlbums" style="text-overflow: clip; " hidden>
+                                <span> <a href="/Albums/${AlbumName}">${AlbumName}</a> </span>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+
+                    <e-grid-column headerTextAlign="Left" textAlign="Left" field="AlbumOwner" headerText="Автор(логин)" template="#templateAlbumsAuthor">
+                        <e-content-template>
+                            <div id="templateAlbumsAuthor" style="text-overflow: clip; " hidden>
+                                <span> <a href="/user-${AlbumOwner}?id=${UserId}">${AlbumOwner}</a> </span>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+
+                    <e-grid-column headerTextAlign="Left" headerText="Удалить" template="#deleteTemplateAlbum">
+                        <e-content-template>
+                            <div id="deleteTemplateAlbum" style="text-overflow: clip; " hidden>
+                                <button type="button" class="btn btn-danger" id="albumDelete" data-toggle="modal" data-target="#albumDeleteModal" onclick="forDeleteAlbum({AlbumId:`${AlbumId}`,AlbumName:`${AlbumName}`})"> Удалить </button>
+                            </div>
+                        </e-content-template>
+                    </e-grid-column>
+                </e-grid-columns>
+            </ejs-grid>
+
+        </div>
+    </div>
+    <div class="modal fade" id="userDeleteModal" tabindex="-1" aria-labelledby="userDeleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userDeleteModalLabel">
+                        Вы действительно хотите
+                        удалить этого пользователя?
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <input id="DeleteUserId" hidden />
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-danger mr-2" data-dismiss="modal"
+                            id="userDeleteConfirm" onclick="confirmDeleteUser()">
+                        Да
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            id="userDeleteCancel">
+                        Нет
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="photoDeleteModal" tabindex="-1" aria-labelledby="photoDeleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="photoDeleteModalLabel">
+                        Вы действительно хотите
+                        удалить это фото?
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <input id="DeletePhotoId" hidden />
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-danger mr-2" data-dismiss="modal"
+                            id="photoDeleteConfirm" onclick="confirmDeletePhoto()">
+                        Да
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            id="photoDeleteCancel">
+                        Нет
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="albumDeleteModal" tabindex="-1" aria-labelledby="albumDeleteModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="albumDeleteModalLabel">
+                        Вы действительно хотите
+                        удалить этот альбом?
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <input id="DeleteAlbumId" hidden />
+                <input id="DeleteAlbumName" hidden />
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-danger mr-2" data-dismiss="modal"
+                            id="albumDeleteConfirm" onclick="confirmDeleteAlbum()">
+                        Да
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            id="albumDeleteCancel">
+                        Нет
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+<style>
+
+    td.e-rowcell {
+        white-space: normal !important;
+        overflow: inherit !important;
+    }
+
+    .e-content {
+        overflow-y: hidden !important;
+    }
+
+    .e-gridheader {
+        padding-right: 0 !important;
+    }
+</style>
+<script>
+    let row;
+    function selectingEvent(e) {
+        row = e.row;
+        let parent = e.target.closest("td");
+        if (parent.getAttribute("aria-colindex") == 3) {
+            setVipUser(e.data.UserId, e.row);
+            e.cancel = true;
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+
+        let syncfusionLicence = document.getElementById('ej2LicWarning');
+        if (syncfusionLicence) {
+
+            syncfusionLicence.style.zIndex = -5;
+        }
+        let gridUser = document.getElementById("Grid").ej2_instances[0];
+        gridUser.gridLines = "Both";
+        let gridAlbum = document.getElementById("GridForAlbum").ej2_instances[0];
+        gridAlbum.gridLines = "Both";
+        let gridPhoto = document.getElementById("GridForPhoto").ej2_instances[0];
+        gridPhoto.gridLines = "Both";
+        
+    });
+
+
+    function removeScroll(event) {
+        document.querySelector(".e-content").style.overflowY = "hidden";
+        document.querySelector(".e-gridheader").style.paddingRight = 0;
+    }
+
+    let hideInputForUser = document.getElementById('DeleteUserId');
+    function forDeleteUser(deletemodeUser)
+    {
+        hideInputForUser.value = deletemodeUser;
+    }
+    function confirmDeleteUser() {
+        let datavalue = hideInputForUser.value;
+       
+        $.ajax({
+            type: "GET",
+            url: `/Admin/DeleteUser?userId=${datavalue}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                showAllUser();
+            },
+            async: false,
+        });
+        document.querySelectorAll("#placeForAlbumUri li a").forEach(function (item) {
+            if (item.id != "AllAlbumsID") {
+                item.remove()
+            }
+        });
+        getPopularAlbums();
+
+    }
+
+    let hideInput = document.getElementById('DeletePhotoId');
+    function forDeletePhoto(deletemodel) {
+        hideInput.value = deletemodel.PhotoId;
+    }
+
+    function confirmDeletePhoto() {
+        let datavalue = hideInput.value;
+        $.ajax({
+            type: "GET",
+            url: `/Admin/DeleteImage?ImageId=${datavalue}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                showAllPhoto();
+            },
+            async: false,
+        });
+        return false;
+    }
+
+    let hideInputForAlbum = document.getElementById('DeleteAlbumId');
+    function forDeleteAlbum(model) {
+        let albumName = document.getElementById("DeleteAlbumName");
+        hideInputForAlbum.value = model.AlbumId;
+        albumName.value = model.AlbumName;
+    }
+
+    function confirmDeleteAlbum() {
+        let datavalue = hideInputForAlbum.value;
+        let albumName = document.getElementById("DeleteAlbumName");
+        document.querySelectorAll("#placeForAlbumUri li a").forEach(function (item) {
+            if (item.innerHTML == albumName.value) {
+                item.remove()
+            }
+        });
+        $.ajax({
+            type: "GET",
+            url: `/Admin/DeleteAlbum?AlbumId=${datavalue}`,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                showAllAlbum();
+            },
+            async: false,
+        });
+        return false;
+    }
+
+
+   
+
+    function setVipUser(id, target) {
+        let needRowCheckBoxValue = target.querySelector("#customSwitch" + id)
+        let request = new ej.base.Ajax(`/User/SetVipStatus/${id}`, 'POST');
+        request.send();
+        request.onSuccess = data => {
+            needRowCheckBoxValue.checked = !needRowCheckBoxValue.checked;
+        };
+    }
+
+
+    function showAllUser() {
+        document.getElementById('Grid').style.display = "block";
+        document.getElementById('GridForPhoto').style.display = "none";
+        document.getElementById('GridForAlbum').style.display = "none";
+        let grid = document.getElementById('Grid').ej2_instances[0];
+        let request = new ej.base.Ajax('/Admin/GetUsers', 'GET');
+        request.send();
+        request.onSuccess = data => {
+
+            if (grid.element !== undefined) {
+                let final = JSON.parse(data);
+                grid.dataSource = final;
+
+            }
+        };
+    }
+
+    function showAllPhoto() {
+       
+        document.getElementById('Grid').style.display = "none";
+        document.getElementById('GridForPhoto').style.display = "block";
+        document.getElementById('GridForAlbum').style.display = "none";
+
+        let grid = document.getElementById('GridForPhoto').ej2_instances[0];
+
+        let request = new ej.base.Ajax('/Admin/GetAllPhotos', 'GET');
+        request.send();
+        request.onSuccess = data => {
+
+            if (grid.element !== undefined) {
+                let final = JSON.parse(data);
+                grid.dataSource = final;
+
+            }
+        };
+    }
+    function showAllAlbum() {
+
+        
+        document.getElementById('Grid').style.display = "none";
+        document.getElementById('GridForPhoto').style.display = "none";
+        document.getElementById('GridForAlbum').style.display = "block";
+
+        let grid = document.getElementById('GridForAlbum').ej2_instances[0];
+        let request = new ej.base.Ajax('/Admin/GetAllAlbums', 'GET');
+        request.send();
+        request.onSuccess = data => {
+
+            if (grid.element !== undefined) {
+                let final = JSON.parse(data);
+                grid.dataSource = final;
+
+            }
+        };
+    }
+
+
+</script>
+
+<!-- Optional JavaScript; choose one of the two! -->
+<!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+@*<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
+            crossorigin="anonymous"></script>*@
+<script src="~/js/app.js"></script>
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+-->

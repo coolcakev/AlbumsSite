@@ -1,0 +1,456 @@
+﻿@model AlbumsSite.Models.HomeModel.FillIndexModel
+
+@using System.Security.Claims;
+@{
+    var checkForAuthenthification = User.Identity.IsAuthenticated;
+    var userRole = User.FindFirstValue(ClaimsIdentity.DefaultRoleClaimType);
+    var userRoleEnum = (RoleName)Enum.Parse(typeof(RoleName), userRole ?? "None");
+    var useidIdentity = User.FindFirst(x => x.Type == "UserId")?.Value ?? "-1";
+    var UserId = int.Parse(useidIdentity);
+
+}
+<div class="banner d-flex flex-column justify-content-center">
+    <div class="container">
+        <h1>Lorem Ipsum</h1>
+        <p>
+            Lorem ipsum, dolor sit amet consectetur adipisicing elit. Cumque libero vero illum? Doloribus deserunt
+            facilis alias, temporibus quidem maiores unde consequuntur expedita! Suscipit fugit eos veritatis, ab
+            fugiat doloribus incidunt?
+        </p>        
+    </div>
+</div>
+<main id="gallery">
+    <div class="main-page py-5">
+        <div class="gallery-container" id="main-page-thumbnails-gallery">
+            @foreach (var item in Model.Pictures)
+            {
+                <a data-lg-size="@item.Width-@item.Height" class="gallery-item"
+                   data-src="@item.SmalpathMedium"
+                   data-sub-html="
+                <div class='d-flex flex-column flex-lg-row'>
+                <div class='col-sm d-flex flex-wrap align-items-center'>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Имя</span><span class='photo-name mr-4'>@item.Name </span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Дата и время</span><span class='photo-date-time mr-4'>@item.Date</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Место</span><span class='photo-place mr-4'>@item.City</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Модель камеры</span><span class='photo-camera mr-4'>@item.CameraModel</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Фокусное расстояние объектива</span><span
+                class='photo-lens-focal-length mr-4'>@item.FocalLength</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Диафрагма</span><span class='photo-diaphragm mr-4'>@item.Aperture</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Скорость затвора</span><span
+                class='photo-shutter-speed mr-4'>@item.ShutterSpeed</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>ISO</span><span class='photo-iso mr-4'>@item.ISO</span>
+                </div>
+                <div class='d-flex align-items-center'>
+                <span class='badge badge-pill badge-dark mr-2'>Вспышка</span><span class='photo-flash mr-4'>@item.Flash</span>
+                </div>
+                </div>
+                <div class='col-sm'>
+                <div class='d-flex flex-column flex-sm-row align-items-center'>
+                <a href='@item.SmallPath' class='btn btn-sm text-white' target='_blank'>Открыть фото в новой вкладке</a>
+                <a href='/Image/SinglePhoto?id=@item.Id' class='btn btn-sm text-white'>Перейти на страницу фото</a>
+                </div>
+                <div class='d-flex align-items-center'>
+
+                    @if (checkForAuthenthification && item.Author.Id != Model.CurrentUserId)
+                    {
+                        var like = item.Likes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == item.Id);
+
+                        if (like != null)
+                        {
+                            <button type='button' onclick='clickLike(this)' photoid='@item.Id' typeButton='liked' class='btn btn-sm photo-like text-white liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+
+                        }
+                        else
+                        {
+                            <button type='button' onclick='clickLike(this)' photoid='@item.Id' typeButton='liked' class='btn btn-sm photo-like text-white '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+                        }
+
+                        var dislike = item.Dislikes.SingleOrDefault(x => x.UserId == UserId && x.PictureId == item.Id);
+                        if (dislike != null)
+                        {
+                            <button type='button' onclick='clickDislike(this)' photoid='@item.Id' typeButton='disliked' class='btn btn-sm photo-Dislike text-white disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+
+                        }
+                        else
+                        {
+                            <button type='button' onclick='clickDislike(this)' photoid='@item.Id' typeButton='disliked' class='btn btn-sm photo-Dislike text-white'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+                        }
+
+
+
+                        <button type='button' class='btn btn-sm text-white' id='photoAddToAlbum' data-toggle='modal'
+                                data-target='#photoAddToAlbumModal' onclick='addModalOpen(`@item.Id`)' title='Добавить себе в альбом'>
+                            <i class='bi bi-plus-lg'></i>
+                        </button>
+                    }
+                    else
+                    {
+
+
+
+                        <button type='button' class='btn btn-sm photo-like text-white liked '><i class='bi bi-hand-thumbs-up'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Likes.Count</span>
+                        <button type='button' class='btn btn-sm photo-Dislike text-white disliked'><i class='bi bi-hand-thumbs-down'></i></button><span class='badge badge-pill badge-dark mr-2'>@item.Dislikes.Count</span>
+
+                        if (Model.CurrentUserId == item.Author.Id)
+                        {
+
+                            <button type='button' class='btn btn-sm text-white' id='photoAddToAlbum' data-toggle='modal'
+                                    data-target='#photoAddToAlbumModal' onclick='addModalOpen(`@item.Id`)' title='Добавить себе в альбом'>
+                                <i class='bi bi-plus-lg'></i>
+                            </button>
+                        }
+
+
+
+                    }
+
+
+
+                </div>
+                </div>
+                </div>" >
+
+
+                <img alt="" class="img-responsive"
+                src="@item.SmalpathThubail" />
+                </a>
+
+            }
+        </div>
+    </div>
+</main>
+<div id="resultSearch" class="container mt-5" style="display:none">
+    <div class="card card-waves mb-4">
+        <div class="card-header">Результати пошуку</div>
+        <div class="card-body">
+
+            <div class="datatable">
+                <ejs-grid id="Grid" allowPaging="true" rowTemplate="#rowtemplate">
+
+                    <e-grid-columns>
+
+
+                        <e-grid-column headerTextAlign="Center" textAlign="Center" field="Id" headerText="Actions"  >
+                           
+                        </e-grid-column>
+
+                    </e-grid-columns>
+                </ejs-grid>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script id="rowtemplate" type="text/x-template">
+    <tr>
+        <td class="photo" style="border: 1px solid #dee2e6;">
+            <a class="d-inline-block border"
+               href="/Image/SinglePhoto?id=${Id}">
+                <img src="${SmalpathThubail}">
+            </a>
+        </td>
+        <td class="details" style="border: 1px solid #dee2e6;">
+            <table class="PropertiesPhoto" cellpadding="3" cellspacing="2">
+                <colgroup>
+                    <col width="50%">
+                    <col width="50%">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td class="CardHeader">Name</td>
+                        <td>${Name} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">Date</td>
+                        <td>${Date} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">City</td>
+                        <td>${City} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">CameraModel</td>
+                        <td>${CameraModel} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">FocalLength</td>
+                        <td>${FocalLength} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">Aperture</td>
+                        <td>${Aperture} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">ShutterSpeed</td>
+                        <td>${ShutterSpeed} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">ISO</td>
+                        <td>${ISO} </td>
+                    </tr>
+                    <tr>
+                        <td class="CardHeader">Flash</td>
+                        <td>${Flash} </td>
+                    </tr>
+
+                    
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</script>
+
+<div class="modal fade" id="photoAddToAlbumModal" tabindex="-1" aria-labelledby="photoAddToAlbumModalLabel"
+     aria-hidden="true">
+    <input id="ImageModelIdForAdd" hidden />
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoAddToAlbumModalLabel">
+                    Выберите альбом в который
+                    вы хотите добавить
+                    фото?
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="photoAddToAlbumSelect">Альбомы</label>
+                    <select multiple class="form-control" id="photoAddToAlbumSelect" size="10">
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary" data-dismiss="modal"
+                        id="photoAddToAlbumConfirm" onclick="addImageToAlbumFromGalery()">
+                    Сохранить и закрыть
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+            
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let syncMessage = document.getElementById("ej2LicWarning");
+        if (syncMessage) {
+            syncMessage.style.display = "none";
+        }
+        var grid = document.getElementById("Grid").ej2_instances[0];
+        grid.gridLines = "Default";
+
+    });
+    jQuery("#main-page-thumbnails-gallery")
+        .justifiedGallery({
+            captions: true,
+            rowHeight: 180,
+            margins: 5
+        })
+        .on("jg.complete", function () {
+            window.lightGallery(
+                document.getElementById("main-page-thumbnails-gallery"),
+                {
+                    autoplayFirstVideo: false,
+                    pager: false,
+                    galleryId: "main-page",
+                    plugins: [lgZoom, lgThumbnail],
+                    mobileSettings: {
+                        controls: false,
+                        showCloseIcon: false,
+                        download: false,
+                        rotate: false
+                    }
+                }
+            );
+        });
+  
+
+    function findThePictureMainPage(args) {
+        findThePicture(args.value);
+    }
+    function toggleCheckboxMainPage(args) {
+        toggleCheckbox(args);
+    }
+    NodeList.prototype.addEventListener = function (event_name, callback, useCapture) {
+        for (var i = 0; i < this.length; i++) {
+            this[i].addEventListener(event_name, callback, useCapture);
+        }
+    };
+
+    NodeList.prototype.filter = Array.prototype.filter;
+    let modelLikeDislike =
+    {
+        liked: {},
+        disliked: {},
+    }
+    function likeOrDislike(item) {
+        let butons = document.querySelectorAll(".photo-like, .photo-Dislike");
+        let oppositeButton = butons.filter(x => x.classList != item.classList)[0];
+
+        let typeThisButton = item.getAttribute('typeButton');
+        let typeOppositeButton = oppositeButton.getAttribute('typeButton');
+        let thisButtonCountSpan = item.nextSibling;
+        let oppositeButtonCountSpan = oppositeButton.nextSibling;
+        let photoId = item.getAttribute('photoid');
+        if (!modelLikeDislike[typeThisButton][photoId])
+            modelLikeDislike[typeThisButton][photoId] = 0;
+
+        if (item.classList.contains(typeThisButton)) {
+            item.classList.remove(typeThisButton);
+            thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeThisButton][photoId] += -1;
+            return
+        }
+        thisButtonCountSpan.innerText = Number(thisButtonCountSpan.innerText) + 1;
+        modelLikeDislike[typeThisButton][photoId] += 1;
+        item.classList.add(typeThisButton);
+        if (oppositeButton.classList.contains(typeOppositeButton)) {
+            oppositeButton.classList.remove(typeOppositeButton);
+            oppositeButtonCountSpan.innerText = Number(oppositeButtonCountSpan.innerText) - 1;
+            modelLikeDislike[typeOppositeButton][photoId] += -1;
+        }
+    };
+    function clickLike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Like/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+
+    function clickDislike(item) {
+        let photoId = Number(item.getAttribute('photoid'));
+        $.ajax({
+            type: "POST",
+            url: `/Image/Dislike/${photoId}`,
+            success: function () {
+            }
+        });
+        likeOrDislike(item);
+    }
+    const lg = document.getElementById('main-page-thumbnails-gallery');
+
+    lg.addEventListener('lgAfterAppendSubHtml', (event) => {
+        let buttons = document.querySelectorAll(".photo-like, .photo-Dislike");
+
+        let photoId = buttons[0].getAttribute('photoid');
+
+        if (modelLikeDislike["liked"][photoId]) {
+            switch (modelLikeDislike["liked"][photoId]) {
+                case 1:
+                    buttons[0].classList.add("liked");
+                    buttons[0].nextSibling.innerText = Number(buttons[0].nextSibling.innerText) + 1;
+                    break;
+                case -1:
+                    buttons[0].classList.remove("liked");
+                    buttons[0].nextSibling.innerText = Number(buttons[0].nextSibling.innerText) - 1;
+                    break;
+
+                default:
+                    break;
+            }
+
+
+        }
+        if (modelLikeDislike["disliked"][photoId]) {
+            switch (modelLikeDislike["disliked"][photoId]) {
+                case 1:
+                    buttons[1].classList.add("disliked");
+                    buttons[1].nextSibling.innerText = Number(buttons[1].nextSibling.innerText) + 1;
+                    break;
+                case -1:
+                    buttons[1].classList.remove("disliked");
+                    buttons[1].nextSibling.innerText = Number(buttons[1].nextSibling.innerText) - 1;
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+    });
+    function addImageToAlbumFromGalery() {
+
+        let albumId = document.getElementById("photoAddToAlbumSelect");
+        if (albumId.value == '')
+            return;
+        let model = new FormData();
+
+        let imageId = document.getElementById("ImageModelIdForAdd");
+        model.append('AlbumId', Number(albumId.value));
+        model.append('PhotoId', Number(imageId.value));
+
+
+        $.ajax({
+            type: "POST",
+            url: "/Image/AddImageToAlbumFromGalery",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function () {
+                albumId.querySelector("[value='" + albumId.value + "']").remove();
+
+            },
+            error: function (data) {
+
+                alert(data.responseText);
+            },
+            async: false,
+        });
+
+    }
+    function addModalOpen(imageId) {
+        let model = new FormData();
+        document.getElementById("ImageModelIdForAdd").value = imageId;
+        model.append('id', Number(imageId));
+        $.ajax({
+            type: "POST",
+            url: "/Image/AddImageModalOpen",
+            data: model,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                var select = document.getElementById("photoAddToAlbumSelect");
+                select.innerHTML = "";
+                data.forEach(function (item) {
+                    var opt = document.createElement('option');
+                    opt.value = item.Id;
+                    opt.innerHTML = item.Name;
+                    select.appendChild(opt);
+                });
+
+            },
+            async: false,
+        });
+    }
+</script>
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/jquery@@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@@4.6.1/dist/js/bootstrap.min.js" integrity="sha384-VHvPCCyXqtD5DqJeNxl2dtTyhF78xXNXdkwX1CZeRusQfRKp+tA7hAShOK/B/fQ2" crossorigin="anonymous"></script>
+-->
